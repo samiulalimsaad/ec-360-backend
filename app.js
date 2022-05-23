@@ -52,6 +52,14 @@ app.get("/products", async (req, res) => {
     });
 });
 
+app.get("/products/:id", async (req, res) => {
+    const product = await Product.findOne({ _id: req.params.id });
+    res.json({
+        product,
+        success: true,
+    });
+});
+
 app.post("/login", async (req, res) => {
     const token = jwt.sign(req.body, process.env.ACCESS_TOKEN, {
         expiresIn: "1d",
