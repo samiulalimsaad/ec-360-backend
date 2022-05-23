@@ -11,4 +11,4 @@ const userSchema = new Schema(
     { timestamps: true }
 );
 
-export const Product = model("product", userSchema);
+export const User = model("User", userSchema);
