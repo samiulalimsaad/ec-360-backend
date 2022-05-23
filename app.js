@@ -60,6 +60,16 @@ app.get("/products/:id", async (req, res) => {
     });
 });
 
+app.post("/product", async (req, res) => {
+    const productData = new Product(req.body);
+    const product = await productData.save();
+    res.json({
+        product,
+        success: true,
+        message: "successfully added",
+    });
+});
+
 app.post("/login", async (req, res) => {
     const token = jwt.sign(req.body, process.env.ACCESS_TOKEN, {
         expiresIn: "1d",
