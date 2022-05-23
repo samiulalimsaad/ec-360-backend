@@ -1,6 +1,7 @@
 import cors from "cors";
 import "dotenv/config";
 import express from "express";
+import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 
 const app = express();
@@ -34,6 +35,16 @@ const verifyUser = async (req, res, next) => {
 
 app.get("/", (req, res) => {
     res.json({ hello: "hello" });
+});
+
+app.post("/login", async (req, res) => {
+    const token = jwt.sign(req.body, process.env.ACCESS_TOKEN, {
+        expiresIn: "1d",
+    });
+    res.json({
+        token,
+        success: true,
+    });
 });
 
 app.listen(PORT, async () => {
