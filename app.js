@@ -3,7 +3,7 @@ import "dotenv/config";
 import express from "express";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
-import { Product } from "./Models/Product.model";
+import { Product } from "./Models/Product.model.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -77,6 +77,24 @@ app.post("/login", async (req, res) => {
     res.json({
         token,
         success: true,
+    });
+});
+
+app.patch("/products/:id", async (req, res) => {
+    const product = await Product.findByIdAndUpdate(
+        req.params.id,
+        {
+            minOrderQuantity: req.body.minOrderQuantity,
+            availableQuantity: req.body.availableQuantity,
+        },
+        {
+            new: true,
+        }
+    );
+    res.json({
+        product,
+        success: true,
+        message: "successfully updated",
     });
 });
 
