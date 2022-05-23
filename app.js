@@ -3,6 +3,7 @@ import "dotenv/config";
 import express from "express";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
+import { Product } from "./Models/Product.model";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -35,6 +36,20 @@ const verifyUser = async (req, res, next) => {
 
 app.get("/", (req, res) => {
     res.json({ hello: "hello" });
+});
+
+app.get("/products", async (req, res) => {
+    const limit = +req.query.limit || 10;
+    const page = +req.query.page - 1 || 0;
+    const skip = limit * page;
+    let products = await Product.find({});
+    const total = Math.ceil(products.length / limit);
+    products = products.slice(skip, skip + limit);
+    res.json({
+        total,
+        products,
+        success: true,
+    });
 });
 
 app.post("/login", async (req, res) => {
