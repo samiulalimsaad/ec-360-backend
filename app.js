@@ -108,7 +108,7 @@ app.patch("/products/:id", async (req, res) => {
     }
 });
 
-app.get("/order/:id", async (req, res) => {
+app.get("/orders/:id", async (req, res) => {
     try {
         const orders = await User.findById(req.params.id).select("orders");
         const orderIds = orders.orders.map((v) => v.id);
@@ -122,7 +122,7 @@ app.get("/order/:id", async (req, res) => {
     }
 });
 
-app.patch("/order/:id", async (req, res) => {
+app.patch("/orders/:id", async (req, res) => {
     try {
         const user = await User.findByIdAndUpdate(
             req.params.id,
@@ -191,7 +191,7 @@ app.get("/reviews/:id", async (req, res) => {
     }
 });
 
-app.patch("/review/:id", async (req, res) => {
+app.patch("/reviews/:id", async (req, res) => {
     try {
         const user = await Review.findByIdAndUpdate(
             req.params.id,
