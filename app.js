@@ -111,6 +111,23 @@ app.patch("/products/:id", async (req, res) => {
     }
 });
 
+app.get("/order/:id", async (req, res) => {
+    try {
+        const orders = await User.findById(req.params.id).select("orders");
+        const orderIds = orders.orders.map((v) => {
+            console.log(v.status);
+        });
+        const order = await Product.find({ _id: { $in: orderIds } });
+
+        res.json({
+            order,
+            success: true,
+        });
+    } catch (error) {
+        res.json({ success: false, error: error.message });
+    }
+});
+
 app.patch("/order/:id", async (req, res) => {
     try {
         const user = await User.findByIdAndUpdate(
@@ -165,6 +182,7 @@ app.get("/review", async (req, res) => {
         res.json({ success: false, error: error.message });
     }
 });
+
 app.patch("/review/:id", async (req, res) => {
     try {
         const user = await Review.findByIdAndUpdate(
