@@ -212,7 +212,23 @@ app.patch("/reviews/:id", async (req, res) => {
     }
 });
 
-app.post("/login", async (req, res) => {
+app.get("/user", async (req, res) => {
+    try {
+        if (req.query.email !== undefined) {
+            console.log(req.query);
+            const user = User.find({ email: req.query.email });
+
+            res.json({
+                user,
+                success: true,
+            });
+        }
+    } catch (error) {
+        res.json({ success: false, error: error.message });
+    }
+});
+
+app.post("/user", async (req, res) => {
     try {
         const newUser = new User(req.body);
         const user = await newUser.save();
@@ -222,6 +238,20 @@ app.post("/login", async (req, res) => {
         });
         res.json({
             user,
+            token,
+            success: true,
+        });
+    } catch (error) {
+        res.json({ success: false, error: error.message });
+    }
+});
+
+app.post("/login", async (req, res) => {
+    try {
+        const token = jwt.sign(req.body, process.env.ACCESS_TOKEN, {
+            expiresIn: "1d",
+        });
+        res.json({
             token,
             success: true,
         });
@@ -242,11 +272,3 @@ app.listen(PORT, async () => {
         }
     );
 });
-
-/**
- * let ids = ['id1','id2','id3']
-let data = await MyModel.find(
-  {'_id': { $in: ids}}
-);
- * 
- */
