@@ -151,6 +151,20 @@ app.post("/review", async (req, res) => {
     }
 });
 
+app.get("/review", async (req, res) => {
+    try {
+        console.log(req.query);
+        const review = await Review.find({
+            email: req.query.email,
+        });
+        res.json({
+            review,
+            success: true,
+        });
+    } catch (error) {
+        res.json({ success: false, error: error.message });
+    }
+});
 app.patch("/review/:id", async (req, res) => {
     try {
         const user = await Review.findByIdAndUpdate(
