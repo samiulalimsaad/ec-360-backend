@@ -4,6 +4,7 @@ import express from "express";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import { Product } from "./Models/Product.model.js";
+import { User } from "./Models/User.model.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -109,14 +110,52 @@ app.patch("/products/:id", async (req, res) => {
     }
 });
 
+app.patch("/order/:id", async (req, res) => {
+    try {
+        const user = await User.findByIdAndUpdate(
+            req.params.id,
+            {
+                $push: {
+                    orders: {
+                        id: req.body.productId,
+                        status: "pending",
+                    },
+                },
+            },
+            {
+                new: true,
+            }
+        );
+
+        const token = jwt.sign(req.body, process.env.ACCESS_TOKEN, {
+            expiresIn: "1d",
+        });
+        res.json({
+            user,
+            token,
+            success: true,
+        });
+    } catch (error) {
+        res.json({ success: false, error: error.message });
+    }
+});
+
 app.post("/login", async (req, res) => {
-    const token = jwt.sign(req.body, process.env.ACCESS_TOKEN, {
-        expiresIn: "1d",
-    });
-    res.json({
-        token,
-        success: true,
-    });
+    try {
+        const newUser = new User(req.body);
+        const user = await newUser.save();
+
+        const token = jwt.sign(req.body, process.env.ACCESS_TOKEN, {
+            expiresIn: "1d",
+        });
+        res.json({
+            user,
+            token,
+            success: true,
+        });
+    } catch (error) {
+        res.json({ success: false, error: error.message });
+    }
 });
 
 app.listen(PORT, async () => {

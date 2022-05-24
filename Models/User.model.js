@@ -5,8 +5,8 @@ const userSchema = new Schema(
         name: String,
         email: String,
         role: String,
-        products: [String],
-        order: [String],
+        products: [],
+        orders: [],
     },
     { timestamps: true }
 );
