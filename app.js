@@ -114,11 +114,8 @@ app.patch("/products/:id", async (req, res) => {
 app.get("/order/:id", async (req, res) => {
     try {
         const orders = await User.findById(req.params.id).select("orders");
-        const orderIds = orders.orders.map((v) => {
-            console.log(v.status);
-        });
+        const orderIds = orders.orders.map((v) => v.id);
         const order = await Product.find({ _id: { $in: orderIds } });
-
         res.json({
             order,
             success: true,
