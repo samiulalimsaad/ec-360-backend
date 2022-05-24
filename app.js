@@ -50,11 +50,8 @@ app.get("/products", async (req, res) => {
         const limit = +req.query.limit || 6;
         const page = +req.query.page - 1 || 0;
         const skip = limit * page;
-        let products = await Product.find({});
-        const total = Math.ceil(products.length / limit);
-        products = products.slice(skip, skip + limit);
+        const products = await Product.find({}).skip(skip).limit(limit);
         res.json({
-            total,
             products,
             success: true,
         });
@@ -165,11 +162,25 @@ app.post("/review", async (req, res) => {
     }
 });
 
-app.get("/review", async (req, res) => {
+app.get("/reviews", async (req, res) => {
     try {
-        console.log(req.query);
+        const limit = +req.query.limit || 6;
+        const page = +req.query.page - 1 || 0;
+        const skip = limit * page;
+        const review = await Review.find({}).limit(limit).skip(skip);
+        res.json({
+            review,
+            success: true,
+        });
+    } catch (error) {
+        res.json({ success: false, error: error.message });
+    }
+});
+
+app.get("/reviews/:id", async (req, res) => {
+    try {
         const review = await Review.find({
-            email: req.query.email,
+            userId: req.params.id,
         });
         res.json({
             review,
