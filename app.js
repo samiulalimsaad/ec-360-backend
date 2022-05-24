@@ -4,6 +4,7 @@ import express from "express";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import { Product } from "./Models/Product.model.js";
+import { Review } from "./Models/Review.model.js";
 import { User } from "./Models/User.model.js";
 
 const app = express();
@@ -127,18 +128,29 @@ app.patch("/order/:id", async (req, res) => {
             }
         );
 
-        const token = jwt.sign(req.body, process.env.ACCESS_TOKEN, {
-            expiresIn: "1d",
-        });
         res.json({
             user,
-            token,
             success: true,
         });
     } catch (error) {
         res.json({ success: false, error: error.message });
     }
 });
+
+app.post("/review", async (req, res) => {
+    try {
+        const newReview = new Review(req.body);
+        const review = await newReview.save();
+
+        res.json({
+            review,
+            success: true,
+        });
+    } catch (error) {
+        res.json({ success: false, error: error.message });
+    }
+});
+
 
 app.post("/login", async (req, res) => {
     try {
