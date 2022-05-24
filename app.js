@@ -22,16 +22,21 @@ const verifyUser = async (req, res, next) => {
         });
     }
     const token = authHeader.split(" ")[1];
-    await jwt.verify(token, process.env.ACCESS_TOKEN, (err, decoded) => {
-        if (err) {
-            return res.status(403).json({
-                success: false,
-                message: "Forbidden access",
-            });
-        }
-        req.email = decoded?.email;
-        next();
-    });
+
+    try {
+        await jwt.verify(token, process.env.ACCESS_TOKEN, (err, decoded) => {
+            if (err) {
+                return res.status(403).json({
+                    success: false,
+                    message: "Forbidden access",
+                });
+            }
+            req.email = decoded?.email;
+            next();
+        });
+    } catch (error) {
+        res.json({ success: false, error: error.message });
+    }
 };
 
 app.get("/", (req, res) => {
@@ -39,35 +44,69 @@ app.get("/", (req, res) => {
 });
 
 app.get("/products", async (req, res) => {
-    const limit = +req.query.limit || 10;
-    const page = +req.query.page - 1 || 0;
-    const skip = limit * page;
-    let products = await Product.find({});
-    const total = Math.ceil(products.length / limit);
-    products = products.slice(skip, skip + limit);
-    res.json({
-        total,
-        products,
-        success: true,
-    });
+    try {
+        const limit = +req.query.limit || 6;
+        const page = +req.query.page - 1 || 0;
+        const skip = limit * page;
+        let products = await Product.find({});
+        const total = Math.ceil(products.length / limit);
+        products = products.slice(skip, skip + limit);
+        res.json({
+            total,
+            products,
+            success: true,
+        });
+    } catch (error) {
+        res.json({ success: false, error: error.message });
+    }
 });
 
 app.get("/products/:id", async (req, res) => {
-    const product = await Product.findOne({ _id: req.params.id });
-    res.json({
-        product,
-        success: true,
-    });
+    try {
+        const product = await Product.findOne({ _id: req.params.id });
+        res.json({
+            product,
+            success: true,
+        });
+    } catch (error) {
+        res.json({ success: false, error: error.message });
+    }
 });
 
 app.post("/product", async (req, res) => {
-    const productData = new Product(req.body);
-    const product = await productData.save();
-    res.json({
-        product,
-        success: true,
-        message: "successfully added",
-    });
+    try {
+        const productData = new Product(req.body);
+        const product = await productData.save();
+        res.json({
+            product,
+            success: true,
+            message: "successfully added",
+        });
+    } catch (error) {
+        res.json({ success: false, error: error.message });
+    }
+});
+
+app.patch("/products/:id", async (req, res) => {
+    try {
+        const product = await Product.findByIdAndUpdate(
+            req.params.id,
+            {
+                minOrderQuantity: req.body.minOrderQuantity,
+                availableQuantity: req.body.availableQuantity,
+            },
+            {
+                new: true,
+            }
+        );
+        res.json({
+            product,
+            success: true,
+            message: "successfully updated",
+        });
+    } catch (error) {
+        res.json({ success: false, error: error.message });
+    }
 });
 
 app.post("/login", async (req, res) => {
@@ -77,24 +116,6 @@ app.post("/login", async (req, res) => {
     res.json({
         token,
         success: true,
-    });
-});
-
-app.patch("/products/:id", async (req, res) => {
-    const product = await Product.findByIdAndUpdate(
-        req.params.id,
-        {
-            minOrderQuantity: req.body.minOrderQuantity,
-            availableQuantity: req.body.availableQuantity,
-        },
-        {
-            new: true,
-        }
-    );
-    res.json({
-        product,
-        success: true,
-        message: "successfully updated",
     });
 });
 
