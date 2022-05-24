@@ -151,6 +151,26 @@ app.post("/review", async (req, res) => {
     }
 });
 
+app.patch("/review/:id", async (req, res) => {
+    try {
+        const user = await Review.findByIdAndUpdate(
+            req.params.id,
+            {
+                $set: req.body,
+            },
+            {
+                new: true,
+            }
+        );
+
+        res.json({
+            user,
+            success: true,
+        });
+    } catch (error) {
+        res.json({ success: false, error: error.message });
+    }
+});
 
 app.post("/login", async (req, res) => {
     try {
