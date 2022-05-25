@@ -193,7 +193,7 @@ app.get("/reviews/:id", async (req, res) => {
 
 app.patch("/reviews/:id", async (req, res) => {
     try {
-        const user = await Review.findByIdAndUpdate(
+        const review = await Review.findByIdAndUpdate(
             req.params.id,
             {
                 $set: req.body,
@@ -202,6 +202,19 @@ app.patch("/reviews/:id", async (req, res) => {
                 new: true,
             }
         );
+
+        res.json({
+            review,
+            success: true,
+        });
+    } catch (error) {
+        res.json({ success: false, error: error.message });
+    }
+});
+
+app.get("/all-user", async (req, res) => {
+    try {
+        const user = await User.find({});
 
         res.json({
             user,
@@ -214,13 +227,18 @@ app.patch("/reviews/:id", async (req, res) => {
 
 app.get("/user", async (req, res) => {
     try {
-        if (req.query.email !== undefined) {
-            console.log(req.query);
-            const user = User.find({ email: req.query.email });
+        const email = req.query.email || "";
+        if (email) {
+            const user = (await User.find({ email }))[0];
 
             res.json({
                 user,
                 success: true,
+            });
+        } else {
+            res.json({
+                success: false,
+                message: "User Not Found",
             });
         }
     } catch (error) {
@@ -240,6 +258,28 @@ app.post("/user", async (req, res) => {
             user,
             token,
             success: true,
+        });
+    } catch (error) {
+        res.json({ success: false, error: error.message });
+    }
+});
+
+app.patch("/user/:id", async (req, res) => {
+    try {
+        const user = await User.findByIdAndUpdate(
+            req.params.id,
+            {
+                $set: req.body,
+            },
+            {
+                new: true,
+            }
+        );
+
+        res.json({
+            user,
+            success: true,
+            message: "Profile Updated Successfully",
         });
     } catch (error) {
         res.json({ success: false, error: error.message });
