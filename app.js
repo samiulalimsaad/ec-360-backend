@@ -50,9 +50,9 @@ app.get("/products", async (req, res) => {
         const limit = +req.query.limit || 6;
         const page = +req.query.page - 1 || 0;
         const skip = limit * page;
-        const products = await Product.find({}).skip(skip).limit(limit);
+        const products = await Product.find({});
         res.json({
-            products,
+            products: products.reverse().slice(skip, skip + limit),
             success: true,
         });
     } catch (error) {
@@ -126,15 +126,15 @@ app.get("/orders", async (req, res) => {
 app.get("/orders/:email", async (req, res) => {
     try {
         const email = req.params.email || "";
-        console.log({ email });
         if (email) {
-            const order = await User.find({ email: req.params.email }).select(
+            const orders = await User.find({ email: req.params.email }).select(
                 "orders"
             );
-            const orderIds = order.map((v) => v.orders.map((vv) => vv.id));
-            const orders = await Product.find({ _id: { $in: orderIds } });
+            // const orderIds = order.map((v) => v.orders.map((vv) => vv.id));
+            // console.log({ orderIds });
+            // const orders = await Product.find({ _id: { $in: orderIds[0] } });
             res.json({
-                orders,
+                orders: orders[0].orders,
                 success: true,
             });
         } else {
@@ -153,8 +153,7 @@ app.patch("/orders", async (req, res) => {
             {
                 $push: {
                     orders: {
-                        id: req.body.productId,
-                        quantity: req.body.quantity,
+                        ...req.body,
                         status: "pending",
                         paid: false,
                     },
