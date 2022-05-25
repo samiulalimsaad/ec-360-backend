@@ -108,7 +108,7 @@ app.patch("/products/:id", async (req, res) => {
     }
 });
 
-app.get("/orders/", async (req, res) => {
+app.get("/orders", async (req, res) => {
     try {
         const orders = await User.find({}).select("orders");
         console.log(orders);
@@ -123,29 +123,40 @@ app.get("/orders/", async (req, res) => {
     }
 });
 
-app.get("/orders/:id", async (req, res) => {
+app.get("/orders/:email", async (req, res) => {
     try {
-        const orders = await User.findById(req.params.id).select("orders");
-        const orderIds = orders.orders.map((v) => v.id);
-        const order = await Product.find({ _id: { $in: orderIds } });
-        res.json({
-            order,
-            success: true,
-        });
+        const email = req.params.email || "";
+        console.log({ email });
+        if (email) {
+            const order = await User.find({ email: req.params.email }).select(
+                "orders"
+            );
+            const orderIds = order.map((v) => v.orders.map((vv) => vv.id));
+            const orders = await Product.find({ _id: { $in: orderIds } });
+            res.json({
+                orders,
+                success: true,
+            });
+        } else {
+            res.json({ success: false, error: "User Not Found" });
+        }
     } catch (error) {
         res.json({ success: false, error: error.message });
     }
 });
 
-app.patch("/orders/:id", async (req, res) => {
+app.patch("/orders", async (req, res) => {
     try {
-        const user = await User.findByIdAndUpdate(
-            req.params.id,
+        console.log(req.body);
+        const user = await User.findOneAndUpdate(
+            { email: req.query.email },
             {
                 $push: {
                     orders: {
                         id: req.body.productId,
+                        quantity: req.body.quantity,
                         status: "pending",
+                        paid: false,
                     },
                 },
             },
