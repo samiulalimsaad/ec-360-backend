@@ -47,12 +47,15 @@ app.get("/", (req, res) => {
 
 app.get("/products", async (req, res) => {
     try {
-        const limit = +req.query.limit || 6;
+        const limit = +req.query.limit;
         const page = +req.query.page - 1 || 0;
         const skip = limit * page;
-        const products = await Product.find({});
+        let products = await Product.find({});
+        if (limit) {
+            products = products.reverse().slice(skip, skip + limit);
+        }
         res.json({
-            products: products.reverse().slice(skip, skip + limit),
+            products,
             success: true,
         });
     } catch (error) {
@@ -72,7 +75,7 @@ app.get("/products/:id", async (req, res) => {
     }
 });
 
-app.post("/product", async (req, res) => {
+app.post("/product", verifyUser, async (req, res) => {
     try {
         const productData = new Product(req.body);
         const product = await productData.save();
@@ -86,7 +89,7 @@ app.post("/product", async (req, res) => {
     }
 });
 
-app.patch("/products/:id", async (req, res) => {
+app.patch("/products/:id", verifyUser, async (req, res) => {
     try {
         const product = await Product.findByIdAndUpdate(
             req.params.id,
@@ -108,12 +111,24 @@ app.patch("/products/:id", async (req, res) => {
     }
 });
 
-app.get("/orders", async (req, res) => {
+app.delete("/products/:id", verifyUser, async (req, res) => {
     try {
-        const orders = await User.find({}).select("orders");
-        console.log(orders);
-        const orderIds = orders.orders.map((v) => v?.id);
-        const order = await Product.find({ _id: { $in: orderIds } });
+        const product = await Product.findByIdAndDelete(req.params.id);
+        res.json({
+            product,
+            success: true,
+            message: "successfully deleted",
+        });
+    } catch (error) {
+        res.json({ success: false, error: error.message });
+    }
+});
+
+app.get("/orders", verifyUser, async (req, res) => {
+    try {
+        const order = await User.find({}).select("orders");
+        const orders = [];
+        order.map((v) => v.orders.map((vv) => orders.push(vv)));
         res.json({
             orders,
             success: true,
@@ -123,16 +138,13 @@ app.get("/orders", async (req, res) => {
     }
 });
 
-app.get("/orders/:email", async (req, res) => {
+app.get("/orders/:email", verifyUser, async (req, res) => {
     try {
         const email = req.params.email || "";
         if (email) {
             const orders = await User.find({ email: req.params.email }).select(
                 "orders"
             );
-            // const orderIds = order.map((v) => v.orders.map((vv) => vv.id));
-            // console.log({ orderIds });
-            // const orders = await Product.find({ _id: { $in: orderIds[0] } });
             res.json({
                 orders: orders[0].orders,
                 success: true,
@@ -145,7 +157,7 @@ app.get("/orders/:email", async (req, res) => {
     }
 });
 
-app.patch("/orders", async (req, res) => {
+app.post("/orders", verifyUser, async (req, res) => {
     try {
         console.log(req.body);
         const user = await User.findOneAndUpdate(
@@ -173,7 +185,31 @@ app.patch("/orders", async (req, res) => {
     }
 });
 
-app.post("/review", async (req, res) => {
+app.patch("/orders/:id", verifyUser, async (req, res) => {
+    try {
+        const user = await User.findOneAndUpdate(
+            { email: req.query.email, "orders.id": req.params.id },
+            {
+                $set: {
+                    orders: req.body,
+                },
+            },
+            {
+                new: true,
+            }
+        );
+
+        console.log(req.body);
+        res.json({
+            user,
+            success: true,
+        });
+    } catch (error) {
+        res.json({ success: false, error: error.message });
+    }
+});
+
+app.post("/review", verifyUser, async (req, res) => {
     try {
         const newReview = new Review(req.body);
         const review = await newReview.save();
@@ -189,10 +225,13 @@ app.post("/review", async (req, res) => {
 
 app.get("/reviews", async (req, res) => {
     try {
-        const limit = +req.query.limit || 6;
+        const limit = +req.query.limit;
         const page = +req.query.page - 1 || 0;
         const skip = limit * page;
-        const review = await Review.find({}).limit(limit).skip(skip);
+        let review = await Review.find({});
+        if (limit) {
+            review = review.reverse().slice(skip, skip + limit);
+        }
         res.json({
             review,
             success: true,
@@ -202,7 +241,7 @@ app.get("/reviews", async (req, res) => {
     }
 });
 
-app.get("/reviews/:id", async (req, res) => {
+app.get("/reviews/:id", verifyUser, async (req, res) => {
     try {
         const review = await Review.find({
             userId: req.params.id,
@@ -216,7 +255,7 @@ app.get("/reviews/:id", async (req, res) => {
     }
 });
 
-app.patch("/reviews/:id", async (req, res) => {
+app.patch("/reviews/:id", verifyUser, async (req, res) => {
     try {
         const review = await Review.findByIdAndUpdate(
             req.params.id,
@@ -237,7 +276,7 @@ app.patch("/reviews/:id", async (req, res) => {
     }
 });
 
-app.get("/all-user", async (req, res) => {
+app.get("/all-user", verifyUser, async (req, res) => {
     try {
         const user = await User.find({});
 
@@ -250,7 +289,7 @@ app.get("/all-user", async (req, res) => {
     }
 });
 
-app.get("/user", async (req, res) => {
+app.get("/user", verifyUser, async (req, res) => {
     try {
         const email = req.query.email || "";
         if (email) {
@@ -289,7 +328,7 @@ app.post("/user", async (req, res) => {
     }
 });
 
-app.patch("/user/:id", async (req, res) => {
+app.patch("/user/:id", verifyUser, async (req, res) => {
     try {
         const user = await User.findByIdAndUpdate(
             req.params.id,
