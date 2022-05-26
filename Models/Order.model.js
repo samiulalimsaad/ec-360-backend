@@ -5,6 +5,7 @@ const orderSchema = new Schema(
         name: String,
         image: String,
         price: Number,
+        quantity: Number,
         paid: Boolean,
         status: String,
         email: String,

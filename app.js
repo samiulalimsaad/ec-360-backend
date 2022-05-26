@@ -125,7 +125,7 @@ app.delete("/products/:id", verifyUser, async (req, res) => {
     }
 });
 
-app.get("/orders", verifyUser, async (req, res) => {
+app.get("/orders", async (req, res) => {
     try {
         const orders = await Order.find({});
         res.json({
@@ -137,7 +137,19 @@ app.get("/orders", verifyUser, async (req, res) => {
     }
 });
 
-app.get("/orders/:email", verifyUser, async (req, res) => {
+app.get("/orders/:id", verifyUser, async (req, res) => {
+    try {
+        const orders = await Order.findById(req.params.id);
+        res.json({
+            orders,
+            success: true,
+        });
+    } catch (error) {
+        res.json({ success: false, error: error.message });
+    }
+});
+
+app.get("/my-orders/:email", verifyUser, async (req, res) => {
     try {
         const email = req.params.email || "";
         if (email) {
@@ -157,7 +169,10 @@ app.get("/orders/:email", verifyUser, async (req, res) => {
 app.post("/orders", verifyUser, async (req, res) => {
     try {
         console.log(req.body);
-        const newOrder = new Order(req.body);
+        const newOrder = new Order({
+            ...req.body,
+            email: req.email,
+        });
         const order = await newOrder.save();
 
         res.json({
@@ -171,8 +186,9 @@ app.post("/orders", verifyUser, async (req, res) => {
 
 app.patch("/orders/:id", verifyUser, async (req, res) => {
     try {
-        const order = await Order.findOneAndUpdate(
-            { email: req.query.email },
+        console.log(req.params.id);
+        const order = await Order.findByIdAndUpdate(
+            req.params.id,
             {
                 $set: req.body,
             },
