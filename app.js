@@ -206,6 +206,18 @@ app.patch("/orders/:id", verifyUser, async (req, res) => {
     }
 });
 
+app.delete("/orders/:id", verifyUser, async (req, res) => {
+    try {
+        const order = await Order.findByIdAndDelete(req.params.id);
+        res.json({
+            order,
+            success: true,
+        });
+    } catch (error) {
+        res.json({ success: false, error: error.message });
+    }
+});
+
 app.post("/review", verifyUser, async (req, res) => {
     try {
         const newReview = new Review(req.body);
