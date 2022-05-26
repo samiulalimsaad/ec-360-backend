@@ -3,6 +3,7 @@ import "dotenv/config";
 import express from "express";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
+import { Order } from "./Models/Order.model.js";
 import { Product } from "./Models/Product.model.js";
 import { Review } from "./Models/Review.model.js";
 import { User } from "./Models/User.model.js";
@@ -126,9 +127,7 @@ app.delete("/products/:id", verifyUser, async (req, res) => {
 
 app.get("/orders", verifyUser, async (req, res) => {
     try {
-        const order = await User.find({}).select("orders");
-        const orders = [];
-        order.map((v) => v.orders.map((vv) => orders.push(vv)));
+        const orders = await Order.find({});
         res.json({
             orders,
             success: true,
@@ -142,11 +141,9 @@ app.get("/orders/:email", verifyUser, async (req, res) => {
     try {
         const email = req.params.email || "";
         if (email) {
-            const orders = await User.find({ email: req.params.email }).select(
-                "orders"
-            );
+            const orders = await Order.find({ email: req.params.email });
             res.json({
-                orders: orders[0].orders,
+                orders,
                 success: true,
             });
         } else {
@@ -160,24 +157,11 @@ app.get("/orders/:email", verifyUser, async (req, res) => {
 app.post("/orders", verifyUser, async (req, res) => {
     try {
         console.log(req.body);
-        const user = await User.findOneAndUpdate(
-            { email: req.query.email },
-            {
-                $push: {
-                    orders: {
-                        ...req.body,
-                        status: "pending",
-                        paid: false,
-                    },
-                },
-            },
-            {
-                new: true,
-            }
-        );
+        const newOrder = new Order(req.body);
+        const order = await newOrder.save();
 
         res.json({
-            user,
+            order,
             success: true,
         });
     } catch (error) {
@@ -187,21 +171,18 @@ app.post("/orders", verifyUser, async (req, res) => {
 
 app.patch("/orders/:id", verifyUser, async (req, res) => {
     try {
-        const user = await User.findOneAndUpdate(
-            { email: req.query.email, "orders.id": req.params.id },
+        const order = await Order.findOneAndUpdate(
+            { email: req.query.email },
             {
-                $set: {
-                    orders: req.body,
-                },
+                $set: req.body,
             },
             {
                 new: true,
             }
         );
 
-        console.log(req.body);
         res.json({
-            user,
+            order,
             success: true,
         });
     } catch (error) {
