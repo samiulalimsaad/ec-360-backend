@@ -42,6 +42,22 @@ const verifyUser = async (req, res, next) => {
     }
 };
 
+const verifyAdmin = async (req, res, next) => {
+    try {
+        const admin = await User.find({ email: req.email });
+        if (admin[0].role === "admin") {
+            next();
+        } else {
+            return res.status(403).json({
+                success: false,
+                message: "Forbidden access",
+            });
+        }
+    } catch (error) {
+        res.json({ success: false, error: error.message });
+    }
+};
+
 app.get("/", (req, res) => {
     res.json({ hello: "hello" });
 });
