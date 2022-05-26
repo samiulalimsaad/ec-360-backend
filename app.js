@@ -29,9 +29,9 @@ const verifyUser = async (req, res, next) => {
     try {
         await jwt.verify(token, process.env.ACCESS_TOKEN, (err, decoded) => {
             if (err) {
-                return res.status(403).json({
+                return res.status(420).json({
                     success: false,
-                    message: "Forbidden access",
+                    message: "Only admin has access",
                 });
             }
             req.email = decoded?.email;
@@ -141,7 +141,7 @@ app.delete("/products/:id", verifyUser, async (req, res) => {
     }
 });
 
-app.get("/orders", async (req, res) => {
+app.get("/orders", verifyUser, async (req, res) => {
     try {
         const orders = await Order.find({});
         res.json({
@@ -184,7 +184,6 @@ app.get("/my-orders/:email", verifyUser, async (req, res) => {
 
 app.post("/orders", verifyUser, async (req, res) => {
     try {
-        console.log(req.body);
         const newOrder = new Order({
             ...req.body,
             email: req.email,
@@ -202,7 +201,6 @@ app.post("/orders", verifyUser, async (req, res) => {
 
 app.patch("/orders/:id", verifyUser, async (req, res) => {
     try {
-        console.log(req.params.id);
         const order = await Order.findByIdAndUpdate(
             req.params.id,
             {

@@ -8,6 +8,7 @@ const productSchema = new Schema(
         availableQuantity: Number,
         price: Number,
         email: String,
+        description: String,
     },
     { timestamps: true }
 );
