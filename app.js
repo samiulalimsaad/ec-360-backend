@@ -29,7 +29,7 @@ const verifyUser = async (req, res, next) => {
     try {
         await jwt.verify(token, process.env.ACCESS_TOKEN, (err, decoded) => {
             if (err) {
-                return res.status(420).json({
+                return res.status(403).json({
                     success: false,
                     message: "Only admin has access",
                 });
@@ -48,7 +48,7 @@ const verifyAdmin = async (req, res, next) => {
         if (admin[0].role === "admin") {
             next();
         } else {
-            return res.status(403).json({
+            return res.status(420).json({
                 success: false,
                 message: "Forbidden access",
             });
